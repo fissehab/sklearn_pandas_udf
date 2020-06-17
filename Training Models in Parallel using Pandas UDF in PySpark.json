@@ -1,0 +1,1172 @@
+{
+  "paragraphs": [
+    {
+      "text": "%md\n## Training Models in Parallel using Pandas UDF in PySpark",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:00 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1591025697992_1082988718",
+      "id": "20200601-153457_245012970_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eTraining Models in Parallel using Pandas UDF in PySpark\u003c/h2\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jun 1, 2020 3:34:57 PM",
+      "dateSubmitted": "Jun 2, 2020 4:14:01 PM",
+      "dateStarted": "Jun 2, 2020 4:14:09 PM",
+      "dateFinished": "Jun 2, 2020 4:14:09 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "",
+      "text": "from sklearn.datasets import make_classification\nimport pandas as pd\nimport numpy as np\nfrom sklearn.model_selection import RandomizedSearchCV\nfrom sklearn.preprocessing import StandardScaler\nfrom sklearn.ensemble import GradientBoostingClassifier, RandomForestClassifier\nfrom pyspark.sql.types import StructType, StructField, IntegerType, FloatType\nfrom sklearn.model_selection import train_test_split\nfrom sklearn.pipeline import Pipeline\nfrom sklearn.metrics import accuracy_score, precision_score, recall_score, roc_auc_score\nfrom pyspark.sql.functions import pandas_udf, struct, PandasUDFType\n    ",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 9:10:19 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": false
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588290644344_-971926906",
+      "id": "20200430-235044_1132389050_q_9KBUNKEQNA1588290641",
+      "dateCreated": "Apr 30, 2020 11:50:41 PM",
+      "dateSubmitted": "Jun 2, 2020 4:14:01 PM",
+      "dateStarted": "Jun 2, 2020 4:14:16 PM",
+      "dateFinished": "Jun 2, 2020 4:15:09 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Create dummy data  with 100 ids,  each of them having 100 rows and 30 features",
+      "text": "frames \u003d []\r\nfor id in range(100):\r\n    X, y \u003d make_classification(n_samples \u003d 100, n_features \u003d 30, n_classes \u003d 2, weights \u003d [0.5,0.5], random_state \u003d id)\r\n    X_y \u003d np.append(X, y.reshape(-1, 1), axis \u003d 1)\r\n    df \u003d pd.DataFrame(X_y, columns \u003d [\u0027x\u0027 + str(i) for i in range(30)] +[\u0027y\u0027])\r\n    df[\u0027id\u0027] \u003d id\r\n    frames.append(df)\r\n    \r\nfinal_df \u003d pd.concat(frames)\r\n",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 9:31:43 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588290766770_490073465",
+      "id": "20200430-235246_1069179079_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": ""
+      },
+      "dateCreated": "Apr 30, 2020 11:52:46 PM",
+      "dateSubmitted": "Jun 2, 2020 4:14:16 PM",
+      "dateStarted": "Jun 2, 2020 4:15:10 PM",
+      "dateFinished": "Jun 2, 2020 4:15:10 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Show sample data",
+      "text": "z.show(final_df.head())",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "x0",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "x0",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "x1",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1591026055799_94859953",
+      "id": "20200601-154055_1025239597_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TABLE",
+        "msg": "{\"exceeded\":-1,\"data\":[[\"x0\",\"x1\",\"x2\",\"x3\",\"x4\",\"x5\",\"x6\",\"x7\",\"x8\",\"x9\",\"x10\",\"x11\",\"x12\",\"x13\",\"x14\",\"x15\",\"x16\",\"x17\",\"x18\",\"x19\",\"x20\",\"x21\",\"x22\",\"x23\",\"x24\",\"x25\",\"x26\",\"x27\",\"x28\",\"x29\",\"y\",\"id\"],[\"-2.7863740396742367\",\"-0.6894491845499376\",\"-0.6522935999350191\",\"-1.8430695501566485\",\"-1.2140774030941206\",\"-0.4779740040404867\",\"0.9318483741143037\",\"0.698457149107336\",\"1.068509399316009\",\"-1.6207337470423404\",\"-0.01568211160255477\",\"-0.3646935443916854\",\"0.339964983801262\",\"0.349654456993174\",\"-1.0921935526093054\",\"0.6203582983435125\",\"-0.5211893123011109\",\"0.16092816829822298\",\"-0.4409226322925914\",\"-0.764143923906443\",\"0.5785214977288784\",\"1.3645318481024713\",\"0.00377088908626934\",\"-0.47965581400794766\",\"-2.2224434857026436\",\"-0.45338580385138766\",\"-0.6878376110286823\",\"-0.2803554951845091\",\"-1.4377914738015785\",\"0.15670385527236397\",\"0.0\",\"0.0\"],[\"1.0719956418304486\",\"-0.13482245109435406\",\"-0.5840935467949193\",\"-2.437564359199356\",\"0.8962484253561593\",\"1.11492455949028\",\"-1.5914478754580315\",\"-0.3611131347398661\",\"0.21524046763961147\",\"1.7944511285596305\",\"-1.05747364780153\",\"1.1036939574621503\",\"0.003222216443155699\",\"0.13545466318998053\",\"-1.7603283965924263\",\"-1.8447011636280461\",\"0.3351056201959989\",\"-0.5559850318789673\",\"0.007617498318158107\",\"0.045165855938831004\",\"-0.857702623046894\",\"-1.62632193782683\",\"0.6089623416545242\",\"0.013748487335533657\",\"-0.9033439498079894\",\"-1.0063655216785503\",\"-0.182904980856951\",\"0.886864686582761\",\"1.8593463338516283\",\"0.40053068459870617\",\"0.0\",\"0.0\"],[\"-0.3653805823167333\",\"0.4046954556143003\",\"0.19145087202391178\",\"-0.45408036251560513\",\"-1.962732009140752\",\"0.08595197343438468\",\"0.25280350541915453\",\"-1.1949868052686603\",\"-2.011880319244709\",\"-0.3545288721030091\",\"1.7746585609733332\",\"-1.1390081931169653\",\"-0.4080147090398969\",\"-0.8779706165358702\",\"0.1212189150478433\",\"0.5629897185861278\",\"0.8805111991771105\",\"-0.39315319475411287\",\"1.584820527349018\",\"1.2961498675278833\",\"0.8709617821716196\",\"0.5365965205668235\",\"-0.500409667304264\",\"0.7519465876771957\",\"-0.07818714416774197\",\"0.5897036055747239\",\"-0.8963697225521802\",\"0.6479677910098883\",\"0.6164593126261553\",\"-1.214401382959259\",\"1.0\",\"0.0\"],[\"0.30616506646092834\",\"0.5726133530407902\",\"-0.8612155533986415\",\"1.0985816482311466\",\"0.1416671648715303\",\"-0.12706716283851693\",\"-0.22157439820400068\",\"0.7538656835623008\",\"-0.2345380349087504\",\"0.55626974301926\",\"-0.8490728726936604\",\"0.5000166958573026\",\"0.4242526181008702\",\"1.070072512070977\",\"-0.5842642261304858\",\"0.47329059491479947\",\"-0.5095951329463574\",\"1.6295000432323286\",\"-0.011135627340667108\",\"-0.6210826977013774\",\"-0.6289807075912683\",\"-1.0982894313247467\",\"-0.8881882110855133\",\"0.8134522451141071\",\"-0.32372692196790664\",\"-0.8633555813417826\",\"-1.0356057313844946\",\"1.344074374673427\",\"1.734572174923709\",\"-1.4317977780650375\",\"1.0\",\"0.0\"],[\"-0.4756834722241752\",\"0.5311783665356953\",\"-0.12824197402770202\",\"0.21717963263828013\",\"-0.6023318535828621\",\"0.07821118109215218\",\"1.5187593369635801\",\"-1.4812459621972984\",\"0.7303517903770194\",\"-1.6613005248968182\",\"0.7644974530335336\",\"0.9237965603139469\",\"-1.1711604614500803\",\"-1.9986394755833727\",\"2.3920366515222007\",\"0.14644077047824985\",\"-0.27177156649069667\",\"-0.2683727352093812\",\"0.9214083978105813\",\"-1.1460004265074433\",\"-0.289005210954233\",\"0.8245572195642364\",\"-1.272558135032317\",\"1.404545514939712\",\"1.6998912473108954\",\"1.1045784735714765\",\"-1.014825907734441\",\"0.4608144771488305\",\"0.04706609465849369\",\"-0.13256801465371804\",\"1.0\",\"0.0\"]]}\n"
+      },
+      "dateCreated": "Jun 1, 2020 3:40:55 PM",
+      "dateSubmitted": "Jun 2, 2020 4:15:10 PM",
+      "dateStarted": "Jun 2, 2020 4:15:10 PM",
+      "dateFinished": "Jun 2, 2020 4:15:10 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "10K rows, 30 features, a response and an id column",
+      "text": "final_df.shape",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588293476719_-813177805",
+      "id": "20200501-003756_1401977711_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "(10000, 32)\n"
+      },
+      "dateCreated": "May 1, 2020 12:37:56 AM",
+      "dateSubmitted": "Jun 2, 2020 4:15:10 PM",
+      "dateStarted": "Jun 2, 2020 4:15:10 PM",
+      "dateFinished": "Jun 2, 2020 4:15:10 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "We have 100 ids ",
+      "text": "final_df.id.nunique()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588293484653_230661285",
+      "id": "20200501-003804_250711849_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "100\n"
+      },
+      "dateCreated": "May 1, 2020 12:38:04 AM",
+      "dateSubmitted": "Jun 2, 2020 4:15:10 PM",
+      "dateStarted": "Jun 2, 2020 4:15:10 PM",
+      "dateFinished": "Jun 2, 2020 4:15:10 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Define schema, the features and response column",
+      "text": "schema \u003d StructType([\r\n                      StructField(\u0027id\u0027, IntegerType()),\r\n                      StructField(\u0027recall\u0027, FloatType()),\r\n                      StructField(\u0027precision\u0027, FloatType()),\r\n                      StructField(\u0027accuracy\u0027, FloatType()),\r\n                      StructField(\u0027auc\u0027,  FloatType())\r\n])\r\n\r\nX_columns \u003d final_df.drop(columns \u003d [\u0027id\u0027, \u0027y\u0027]).columns\r\ny_columns \u003d \u0027y\u0027",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588293599977_1127647244",
+      "id": "20200501-003959_318212408_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": ""
+      },
+      "dateCreated": "May 1, 2020 12:39:59 AM",
+      "dateSubmitted": "Jun 2, 2020 4:15:10 PM",
+      "dateStarted": "Jun 2, 2020 4:15:10 PM",
+      "dateFinished": "Jun 2, 2020 4:15:10 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Create spark dataframe from the pandas dataframe",
+      "text": "final_df_spark \u003d spark.createDataFrame(final_df)",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588296383590_1416775914",
+      "id": "20200501-012623_2020636872_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": ""
+      },
+      "dateCreated": "May 1, 2020 1:26:23 AM",
+      "dateSubmitted": "Jun 2, 2020 4:15:10 PM",
+      "dateStarted": "Jun 2, 2020 4:15:10 PM",
+      "dateFinished": "Jun 2, 2020 4:15:14 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "final_df_spark.count()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "runtimeInfos": {},
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 0,
+            "jobUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/jobs/job?spark\u003dtrue\u0026id\u003d0",
+            "numTasks": 9,
+            "numCompletedTasks": 9,
+            "stages": [
+              {
+                "id": 0,
+                "completed": true,
+                "status": "Completed",
+                "stageUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/stages/stage/?id\u003d0\u0026attempt\u003d0",
+                "numCompleteTasks": 8,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 8
+              },
+              {
+                "id": 1,
+                "completed": true,
+                "status": "Completed",
+                "stageUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/stages/stage/?id\u003d1\u0026attempt\u003d0",
+                "numCompleteTasks": 1,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 1
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 9,
+        "numTasks": 9,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588362402098_-1093912704",
+      "id": "20200501-194642_1163192092_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "10000\n"
+      },
+      "dateCreated": "May 1, 2020 7:46:42 PM",
+      "dateSubmitted": "Jun 2, 2020 4:15:11 PM",
+      "dateStarted": "Jun 2, 2020 4:15:14 PM",
+      "dateFinished": "Jun 2, 2020 4:15:19 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "%md\n\n## Gradient Boosting Classifier",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588364992656_-1908703082",
+      "id": "20200501-202952_218221136_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch2\u003eGradient Boosting Classifier\u003c/h2\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "May 1, 2020 8:29:52 PM",
+      "dateSubmitted": "Jun 2, 2020 4:14:16 PM",
+      "dateStarted": "Jun 2, 2020 4:14:16 PM",
+      "dateFinished": "Jun 2, 2020 4:14:16 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Pandas UDF: a function that trains Gradient Boosting Classifier classifier using cross validation with random search and gets accuracy, recall, precision and area under the curve for each id",
+      "text": "@pandas_udf(schema, PandasUDFType.GROUPED_MAP)\r\n\r\ndef model_results_per_id(df):\r\n    \r\n    id \u003d int(df.id.unique()[0])\r\n    X \u003d df[X_columns]\r\n    y \u003d df[y_columns]\r\n    X_train, X_test, y_train, y_test \u003d train_test_split(X, y, test_size \u003d 0.3, random_state \u003d 42)\r\n    steps \u003d [(\u0027scaler\u0027, StandardScaler()), \r\n             (\u0027gbm\u0027, GradientBoostingClassifier(random_state\u003d0))\r\n            ]\r\n            \r\n    pipeline \u003d Pipeline(steps)\r\n    \r\n    param_distributions \u003d {\u0027gbm__loss\u0027: [\u0027deviance\u0027, \u0027exponential\u0027], \r\n                          \u0027gbm__learning_rate\u0027:np.arange(0.01, 0.5, 0.01),\r\n                          \u0027gbm__n_estimators\u0027: range(20, 1000, 10), \r\n                          \u0027gbm__max_depth\u0027: range(5, 100, 5), \r\n                          \u0027gbm__max_features\u0027:[\u0027sqrt\u0027, \u0027log2\u0027, None], \r\n                          \u0027gbm__min_samples_split\u0027:   [2, 5, 10]}                           \r\n        \r\n    gbm_cv \u003d RandomizedSearchCV(pipeline, param_distributions, cv \u003d 5, n_iter \u003d 100,  n_jobs \u003d -1, scoring \u003d \u0027f1\u0027) \r\n    gbm_cv.fit(X_train, y_train)\r\n    y_pred \u003d gbm_cv.predict(X_test)\r\n    accuracy \u003d accuracy_score(y_test, y_pred).tolist()\r\n    precision \u003d precision_score(y_test, y_pred).tolist()\r\n    recall \u003d precision_score(y_test, y_pred).tolist()\r\n    y_pred_prob \u003d gbm_cv.predict_proba(X_test)[:,1]\r\n    auc \u003d roc_auc_score(y_test, y_pred_prob).tolist()\r\n    model_results \u003d pd.DataFrame([[id, recall, precision, accuracy, auc]], columns \u003d [\u0027id\u0027, \u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027])\r\n    return model_results",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588293839878_1032162763",
+      "id": "20200501-004359_270055338_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": ""
+      },
+      "dateCreated": "May 1, 2020 12:43:59 AM",
+      "dateSubmitted": "Jun 2, 2020 4:15:14 PM",
+      "dateStarted": "Jun 2, 2020 4:15:19 PM",
+      "dateFinished": "Jun 2, 2020 4:15:19 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "model_results_by_id \u003d final_df_spark.groupBy(\u0027id\u0027).apply(model_results_per_id).toPandas()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 1,
+            "jobUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/jobs/job?spark\u003dtrue\u0026id\u003d1",
+            "numTasks": 208,
+            "numCompletedTasks": 208,
+            "stages": [
+              {
+                "id": 2,
+                "completed": true,
+                "status": "Completed",
+                "stageUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/stages/stage/?id\u003d2\u0026attempt\u003d0",
+                "numCompleteTasks": 8,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 8
+              },
+              {
+                "id": 3,
+                "completed": true,
+                "status": "Completed",
+                "stageUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/stages/stage/?id\u003d3\u0026attempt\u003d0",
+                "numCompleteTasks": 200,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 200
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 208,
+        "numTasks": 208,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588296163684_-1076921270",
+      "id": "20200501-012243_1185745701_q_9KBUNKEQNA1588290641",
+      "dateCreated": "May 1, 2020 1:22:43 AM",
+      "dateSubmitted": "Jun 2, 2020 4:15:19 PM",
+      "dateStarted": "Jun 2, 2020 4:15:19 PM",
+      "dateFinished": "Jun 2, 2020 4:23:02 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "%md\n\n#### As you can see from the time take above, it took about 8 minutes to train the models for all of the ids.",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 5:39:05 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1591026256679_1443696007",
+      "id": "20200601-154416_1487341826_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eAs you can see from the time take above, it took about 8 minutes to train the models for all of the ids.\u003c/h4\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jun 1, 2020 3:44:16 PM",
+      "dateSubmitted": "Jun 2, 2020 5:39:03 PM",
+      "dateStarted": "Jun 2, 2020 5:39:03 PM",
+      "dateFinished": "Jun 2, 2020 5:39:03 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Display Sample results",
+      "text": "model_results_by_id[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]] \u003d model_results_by_id[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]].round(3)\nmodel_results_by_id.sort_values(by \u003d \u0027id\u0027).reset_index(drop \u003d True).head()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "id",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "id",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "recall",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588297107482_620174359",
+      "id": "20200501-013827_1175881396_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "   id  recall  precision  accuracy    auc\n0   0   1.000      1.000     0.867  0.958\n1   1   1.000      1.000     0.900  0.911\n2   2   0.923      0.923     0.900  0.897\n3   3   0.909      0.909     0.733  0.878\n4   4   1.000      1.000     0.933  0.928\n"
+      },
+      "dateCreated": "May 1, 2020 1:38:27 AM",
+      "dateSubmitted": "Jun 2, 2020 4:15:20 PM",
+      "dateStarted": "Jun 2, 2020 4:23:03 PM",
+      "dateFinished": "Jun 2, 2020 4:23:03 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Sklearn: how long does it take using vanilla Sklearn ",
+      "text": "frames \u003d []\r\nfor id in range(100):\r\n    df \u003d final_df[final_df.id \u003d\u003d id]\r\n    X \u003d df[X_columns]\r\n    y \u003d df[y_columns]\r\n    X_train, X_test, y_train, y_test \u003d train_test_split(X, y, test_size \u003d 0.3, random_state \u003d 42)\r\n    steps \u003d [(\u0027scaler\u0027, StandardScaler()), \r\n             (\u0027gbm\u0027, GradientBoostingClassifier(random_state\u003d0))\r\n            ]\r\n            \r\n    pipeline \u003d Pipeline(steps)\r\n    \r\n    param_distributions \u003d {\u0027gbm__loss\u0027: [\u0027deviance\u0027, \u0027exponential\u0027], \r\n                          \u0027gbm__learning_rate\u0027:np.arange(0.01, 0.5, 0.01),\r\n                          \u0027gbm__n_estimators\u0027: range(20, 1000, 10), \r\n                          \u0027gbm__max_depth\u0027: range(5, 100, 5), \r\n                          \u0027gbm__max_features\u0027:[\u0027sqrt\u0027, \u0027log2\u0027, None], \r\n                          \u0027gbm__min_samples_split\u0027:   [2, 5, 10]}                           \r\n        \r\n    gbm_cv \u003d RandomizedSearchCV(pipeline, param_distributions, cv \u003d 5, n_iter \u003d 100,  n_jobs \u003d -1, scoring \u003d \u0027f1\u0027) \r\n    gbm_cv.fit(X_train, y_train)\r\n\r\n    gbm_cv.fit(X_train, y_train) \r\n    y_pred \u003d gbm_cv.predict(X_test)\r\n    accuracy \u003d accuracy_score(y_test, y_pred).tolist()\r\n    precision \u003d precision_score(y_test, y_pred).tolist()\r\n    recall \u003d precision_score(y_test, y_pred).tolist()\r\n    y_pred_prob \u003d gbm_cv.predict_proba(X_test)[:,1]\r\n    auc \u003d roc_auc_score(y_test, y_pred_prob)\r\n    model_results \u003d pd.DataFrame([[id, recall, precision, accuracy, auc]], columns \u003d [\u0027id\u0027, \u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027])\r\n    frames.append(model_results)\r\nall_model_results_sklearn \u003d pd.concat(frames)",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588294806295_-253656026",
+      "id": "20200501-010006_1262919773_q_9KBUNKEQNA1588290641",
+      "dateCreated": "May 1, 2020 1:00:06 AM",
+      "dateSubmitted": "Jun 2, 2020 4:23:03 PM",
+      "dateStarted": "Jun 2, 2020 4:23:03 PM",
+      "dateFinished": "Jun 2, 2020 4:53:51 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "%md\n### As you can see from the cell above, sklearn without pandas UDF took about 31 minutes to train all the models. About 4 times slower than Pandas UDF.",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 5:40:20 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1591026335133_-820258466",
+      "id": "20200601-154535_1936586459_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eAs you can see from the cell above, sklearn without pandas UDF took about 31 minutes to train all the models. About 4 times slower than Pandas UDF.\u003c/h3\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jun 1, 2020 3:45:35 PM",
+      "dateSubmitted": "Jun 2, 2020 5:40:10 PM",
+      "dateStarted": "Jun 2, 2020 5:40:10 PM",
+      "dateFinished": "Jun 2, 2020 5:40:10 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Sample results",
+      "text": "all_model_results_sklearn[\u0027id\u0027] \u003d all_model_results_sklearn[\u0027id\u0027].astype(int)\nall_model_results_sklearn[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]] \u003d all_model_results_sklearn[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]].round(3)\nall_model_results_sklearn.sort_values(by \u003d \u0027id\u0027).head()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [
+            {
+              "name": "id",
+              "index": 0.0,
+              "aggr": "sum"
+            }
+          ],
+          "values": [],
+          "groups": [],
+          "scatter": {
+            "xAxis": {
+              "name": "id",
+              "index": 0.0,
+              "aggr": "sum"
+            },
+            "yAxis": {
+              "name": "recall",
+              "index": 1.0,
+              "aggr": "sum"
+            }
+          }
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588295776115_-760989349",
+      "id": "20200501-011616_1851505041_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "   id  recall  precision  accuracy    auc\n0   0   1.000      1.000     0.933  0.944\n0   1   1.000      1.000     0.900  0.929\n0   2   0.786      0.786     0.800  0.915\n0   3   0.923      0.923     0.800  0.910\n0   4   1.000      1.000     0.933  0.955\n"
+      },
+      "dateCreated": "May 1, 2020 1:16:16 AM",
+      "dateSubmitted": "Jun 2, 2020 4:23:03 PM",
+      "dateStarted": "Jun 2, 2020 4:53:51 PM",
+      "dateFinished": "Jun 2, 2020 4:53:51 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Pandas UDF: a function that trains Randomforest classifier using cross validation with random search  and gets accuracy, recall, precision and area under the curve for each id",
+      "text": "@pandas_udf(schema, PandasUDFType.GROUPED_MAP)\r\n\r\ndef model_results_per_id_rf(df):\r\n    \r\n    id \u003d int(df.id.unique()[0])\r\n    X \u003d df[X_columns]\r\n    y \u003d df[y_columns]\r\n    X_train, X_test, y_train, y_test \u003d train_test_split(X, y, test_size \u003d 0.3, random_state \u003d 42)\r\n    steps \u003d [(\u0027scaler\u0027, StandardScaler()), \r\n              (\u0027rf\u0027, RandomForestClassifier(random_state\u003d0, n_jobs\u003d-1))\r\n            ]\r\n            \r\n    pipeline \u003d Pipeline(steps)\r\n    \r\n    param_distributions \u003d {\u0027rf__n_estimators\u0027: [100, 200, 500, 800],\r\n                          \u0027rf__criterion\u0027:[\u0027entropy\u0027, \u0027gini\u0027],\r\n                          \u0027rf__max_features\u0027:[\u0027auto\u0027, \u0027sqrt\u0027, \u0027log2\u0027, None],\r\n                          \u0027rf__min_samples_split\u0027:   [2, 5, 10],\r\n                          \u0027rf__min_samples_leaf\u0027: [1, 2, 4], \r\n                          \u0027rf__bootstrap\u0027: [True, False]}                           \r\n        \r\n    rf_cv \u003d RandomizedSearchCV(pipeline, param_distributions, cv \u003d 5,  n_jobs \u003d -1, n_iter\u003d100, scoring \u003d \u0027f1\u0027) \r\n    rf_cv.fit(X_train, y_train)\r\n    y_pred \u003d rf_cv.predict(X_test)\r\n    accuracy \u003d accuracy_score(y_test, y_pred).tolist()\r\n    precision \u003d precision_score(y_test, y_pred).tolist()\r\n    recall \u003d precision_score(y_test, y_pred).tolist()\r\n    y_pred_prob \u003d rf_cv.predict_proba(X_test)[:,1]\r\n    auc \u003d roc_auc_score(y_test, y_pred_prob).tolist()\r\n    model_results \u003d pd.DataFrame([[id, recall, precision, accuracy, auc]], columns \u003d [\u0027id\u0027, \u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027])\r\n    return model_results",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:16 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588305454994_2029892840",
+      "id": "20200501-035734_904213059_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": ""
+      },
+      "dateCreated": "May 1, 2020 3:57:34 AM",
+      "dateSubmitted": "Jun 2, 2020 4:53:51 PM",
+      "dateStarted": "Jun 2, 2020 4:53:51 PM",
+      "dateFinished": "Jun 2, 2020 4:53:51 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "model_results_by_id_spark_rf \u003d final_df_spark.groupBy(\u0027id\u0027).apply(model_results_per_id_rf).toPandas()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:17 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [
+          {
+            "id": 2,
+            "jobUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/jobs/job?spark\u003dtrue\u0026id\u003d2",
+            "numTasks": 208,
+            "numCompletedTasks": 208,
+            "stages": [
+              {
+                "id": 5,
+                "completed": true,
+                "status": "Completed",
+                "stageUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/stages/stage/?id\u003d5\u0026attempt\u003d0",
+                "numCompleteTasks": 200,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 200
+              },
+              {
+                "id": 4,
+                "completed": true,
+                "status": "Completed",
+                "stageUrl": "https://us.qubole.com/cluster-proxy?encodedUrl\u003dhttp%3A%2F%2F10.4.11.158%3A8088%2Fproxy%2Fapplication_1591114260131_0001/stages/stage/?id\u003d4\u0026attempt\u003d0",
+                "numCompleteTasks": 8,
+                "numActiveTasks": 0,
+                "numFailedTasks": 0,
+                "numTotalTasks": 8
+              }
+            ],
+            "status": "Success"
+          }
+        ],
+        "numCompletedTasks": 208,
+        "numTasks": 208,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588365233810_797385362",
+      "id": "20200501-203353_2016504089_q_9KBUNKEQNA1588290641",
+      "dateCreated": "May 1, 2020 8:33:53 PM",
+      "dateSubmitted": "Jun 2, 2020 4:53:51 PM",
+      "dateStarted": "Jun 2, 2020 4:53:51 PM",
+      "dateFinished": "Jun 2, 2020 5:06:54 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "%md\n\n### Random Forest with Pandas UDF took about 13 minutes.",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 5:40:46 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1591026565086_1434303335",
+      "id": "20200601-154925_353942125_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eRandom Forest with Pandas UDF took about 13 minutes.\u003c/h3\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jun 1, 2020 3:49:25 PM",
+      "dateSubmitted": "Jun 2, 2020 5:40:45 PM",
+      "dateStarted": "Jun 2, 2020 5:40:45 PM",
+      "dateFinished": "Jun 2, 2020 5:40:45 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Sample results",
+      "text": "model_results_by_id_spark_rf[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]] \u003d model_results_by_id_spark_rf[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]].round(3)\nmodel_results_by_id_spark_rf.sort_values(by \u003d \u0027id\u0027).reset_index(drop \u003d True).head()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:17 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588365724784_1884004912",
+      "id": "20200501-204204_1514967867_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "   id  recall  precision  accuracy    auc\n0   0   1.000      1.000     0.933  0.977\n1   1   1.000      1.000     0.900  0.969\n2   2   0.846      0.846     0.833  0.911\n3   3   0.917      0.917     0.767  0.887\n4   4   1.000      1.000     0.933  0.959\n"
+      },
+      "dateCreated": "May 1, 2020 8:42:04 PM",
+      "dateSubmitted": "Jun 2, 2020 4:53:51 PM",
+      "dateStarted": "Jun 2, 2020 5:06:54 PM",
+      "dateFinished": "Jun 2, 2020 5:06:54 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Sklearn: how long does it take using vanilla Sklearn ",
+      "text": "frames \u003d []\r\nfor id in range(100):\r\n    df \u003d final_df[final_df.id \u003d\u003d id]\r\n    X \u003d df[X_columns]\r\n    y \u003d df[y_columns]\r\n    X_train, X_test, y_train, y_test \u003d train_test_split(X, y, test_size \u003d 0.3, random_state \u003d 42)\r\n    steps \u003d [(\u0027scaler\u0027, StandardScaler()), \r\n              (\u0027rf\u0027, RandomForestClassifier(random_state\u003d0, n_jobs\u003d-1))\r\n            ]\r\n            \r\n    pipeline \u003d Pipeline(steps)\r\n    \r\n    param_distributions \u003d {\u0027rf__n_estimators\u0027: [100, 200, 500, 800],\r\n                          \u0027rf__criterion\u0027:[\u0027entropy\u0027, \u0027gini\u0027],\r\n                          \u0027rf__max_features\u0027:[\u0027auto\u0027, \u0027sqrt\u0027, \u0027log2\u0027, None],\r\n                          \u0027rf__min_samples_split\u0027:   [2, 5, 10],\r\n                          \u0027rf__min_samples_leaf\u0027: [1, 2, 4], \r\n                          \u0027rf__bootstrap\u0027: [True, False]}                           \r\n        \r\n    rf_cv \u003d RandomizedSearchCV(pipeline, param_distributions, cv \u003d 5,  n_jobs \u003d -1, n_iter\u003d100, scoring \u003d \u0027f1\u0027) \r\n    rf_cv.fit(X_train, y_train)\r\n    y_pred \u003d rf_cv.predict(X_test)\r\n    accuracy \u003d accuracy_score(y_test, y_pred).tolist()\r\n    precision \u003d precision_score(y_test, y_pred).tolist()\r\n    recall \u003d precision_score(y_test, y_pred).tolist()\r\n    y_pred_prob \u003d rf_cv.predict_proba(X_test)[:,1]\r\n    auc \u003d roc_auc_score(y_test, y_pred_prob).tolist()\r\n    model_results \u003d pd.DataFrame([[id, recall, precision, accuracy, auc]], columns \u003d [\u0027id\u0027, \u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027])\r\n    frames.append(model_results)\r\nall_model_results_sklearn_rf \u003d pd.concat(frames)",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:17 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python",
+        "title": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "paragraphProgress": {
+        "jobs": [],
+        "numCompletedTasks": 0,
+        "numTasks": 0,
+        "truncated": false
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588365260473_703152530",
+      "id": "20200501-203420_1595073110_q_9KBUNKEQNA1588290641",
+      "dateCreated": "May 1, 2020 8:34:20 PM",
+      "dateSubmitted": "Jun 2, 2020 5:06:54 PM",
+      "dateStarted": "Jun 2, 2020 5:06:54 PM",
+      "dateFinished": "Jun 2, 2020 6:08:14 PM",
+      "status": "FINISHED",
+      "errorMessage": "",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "%md\n\n### Sklearn without Pandas UDF took 61 minutes (7.63 times slower)",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:17 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1591026667359_-291174534",
+      "id": "20200601-155107_1347083761_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch3\u003eSklearn without Pandas UDF took 61 minutes (7.63 times slower)\u003c/h3\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "Jun 1, 2020 3:51:07 PM",
+      "dateSubmitted": "Jun 2, 2020 4:14:17 PM",
+      "dateStarted": "Jun 2, 2020 4:14:17 PM",
+      "dateFinished": "Jun 2, 2020 4:14:17 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "all_model_results_sklearn_rf[\u0027id\u0027] \u003d all_model_results_sklearn_rf[\u0027id\u0027].astype(int)\nall_model_results_sklearn_rf[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]] \u003d all_model_results_sklearn_rf[[\u0027recall\u0027, \u0027precision\u0027, \u0027accuracy\u0027, \u0027auc\u0027]].round(3)\nall_model_results_sklearn_rf.sort_values(by \u003d \u0027id\u0027).head()",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:17 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588365300657_1509463631",
+      "id": "20200501-203500_432880196_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "TEXT",
+        "msg": "   id  recall  precision  accuracy    auc\n0   0   1.000      1.000     0.933  0.963\n0   1   1.000      1.000     0.900  0.900\n0   2   0.786      0.786     0.800  0.915\n0   3   0.929      0.929     0.833  0.921\n0   4   0.917      0.917     0.900  0.955\n"
+      },
+      "dateCreated": "May 1, 2020 8:35:00 PM",
+      "dateSubmitted": "Jun 2, 2020 5:06:54 PM",
+      "dateStarted": "Jun 2, 2020 6:08:14 PM",
+      "dateFinished": "Jun 2, 2020 6:08:14 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "title": "Main Points",
+      "text": "%md\n\n#### When you are training models per group or per ID, using Pandas UDF in PySpark can save you lots of time.\n\n#### The amount of time you save will depend on how many distinct groups(IDs) you have and the power of your cluster. If you have more groups(IDs) and if you can use more nodes, you can save lots of time.\n\n#### To get the similar results from Spark and Python, make sure to set random seed for train_test_split and RandomizedSearchCV.\n\n#### Your data should not be very skewed to only very few of the grouping field.\n",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:17 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "title": true,
+        "editorHide": true
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v1",
+      "jobName": "paragraph_1588366322997_-339517881",
+      "id": "20200501-205202_192275715_q_9KBUNKEQNA1588290641",
+      "result": {
+        "code": "SUCCESS",
+        "type": "HTML",
+        "msg": "\u003cdiv class\u003d\"markdown-body\"\u003e\n\u003ch4\u003eWhen you are training models per group or per ID, using Pandas UDF in PySpark can save you lots of time.\u003c/h4\u003e\n\u003ch4\u003eThe amount of time you save will depend on how many distinct groups(IDs) you have and the power of your cluster. If you have more groups(IDs) and if you can use more nodes, you can save lots of time.\u003c/h4\u003e\n\u003ch4\u003eTo get the similar results from Spark and Python, make sure to set random seed for train_test_split and RandomizedSearchCV.\u003c/h4\u003e\n\u003ch4\u003eYour data should not be very skewed to only very few of the grouping field.\u003c/h4\u003e\n\u003c/div\u003e"
+      },
+      "dateCreated": "May 1, 2020 8:52:02 PM",
+      "dateSubmitted": "Jun 2, 2020 4:14:17 PM",
+      "dateStarted": "Jun 2, 2020 4:14:17 PM",
+      "dateFinished": "Jun 2, 2020 4:14:17 PM",
+      "status": "FINISHED",
+      "progressUpdateIntervalMs": 1000
+    },
+    {
+      "text": "",
+      "user": "fisseha.berhane@flywheeldigital.com",
+      "dateUpdated": "Jun 2, 2020 4:14:17 PM",
+      "config": {
+        "colWidth": 12.0,
+        "graph": {
+          "mode": "table",
+          "height": 300.0,
+          "optionOpen": false,
+          "keys": [],
+          "values": [],
+          "groups": [],
+          "scatter": {}
+        },
+        "enabled": true,
+        "editorMode": "ace/mode/python"
+      },
+      "settings": {
+        "params": {},
+        "forms": {}
+      },
+      "version": "v0",
+      "jobName": "paragraph_1591027006501_-95446257",
+      "id": "20200601-155646_576266627_q_9KBUNKEQNA1588290641",
+      "dateCreated": "Jun 1, 2020 3:56:46 PM",
+      "status": "READY",
+      "progressUpdateIntervalMs": 1000
+    }
+  ],
+  "name": "Training Models in Parallel using Pandas UDF in PySpark",
+  "id": "9KBUNKEQNA1588290641",
+  "angularObjects": {
+    "2EP2ZMM9X291171569579743102:9KBUNKEQNA1588290641": [],
+    "2EPU2DJCB291171569352617188:shared_process": [],
+    "2EQCKAWNK291171569352617188:shared_process": [],
+    "2EN13DG9D291171569352617188:shared_process": []
+  },
+  "config": {
+    "isDashboard": false,
+    "defaultLang": "pyspark"
+  },
+  "info": {},
+  "source": "FCN"
+}
